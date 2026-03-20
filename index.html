@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kad Raya Digital Premium</title>
+    <title>Kad Raya Digital | Keluarga Encik Jasni</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Quicksand:wght@300;500&display=swap"
         rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 
     <style>
         :root {
@@ -36,12 +36,10 @@
             transition: background 2s ease;
         }
 
-        /* Background Transition */
         .bg-raya {
             background: radial-gradient(circle at center, var(--olive-primary), var(--olive-dark)) !important;
         }
 
-        /* Canvas Bunga Api */
         #fw-canvas {
             position: fixed;
             top: 0;
@@ -77,7 +75,6 @@
             from {
                 opacity: 0.3;
                 transform: scale(0.8);
-                box-shadow: 0 0 5px var(--gold);
             }
 
             to {
@@ -87,41 +84,51 @@
             }
         }
 
-        /* Ketupat Floating */
-        .ketupat-bg {
-            position: absolute;
-            font-size: 2rem;
-            opacity: 0;
-            z-index: 6;
-            transition: opacity 2s ease;
-            pointer-events: none;
-        }
-
-        /* Intro UI */
+        /* Ikon Kad (Ganti Butang) */
         #intro-ui {
             position: relative;
             z-index: 100;
             text-align: center;
-        }
-
-        .btn-open {
-            padding: 18px 45px;
-            background: rgba(0, 0, 0, 0.6);
-            color: var(--gold);
-            border: 2px solid var(--gold);
-            border-radius: 50px;
-            font-size: 1.3rem;
             cursor: pointer;
-            transition: 0.4s;
-            backdrop-filter: blur(5px);
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
         }
 
-        .btn-open:hover {
-            background: var(--gold);
-            color: white;
-            box-shadow: 0 0 30px var(--gold);
+        .envelope-wrapper {
+            transform: scale(2.0);
+            font-size: 150px;
+            filter: drop-shadow(0 0 20px var(--gold));
+            animation: pulse 2s infinite ease-in-out;
+            transition: transform 0.3s;
+        }
+
+        .envelope-wrapper:hover {
+            transform: scale(1.2);
+        }
+
+        .click-hint {
+            color: var(--gold-light);
+            margin-top: 15px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            text-shadow: 0 0 10px black;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 10px var(--gold));
+            }
+
+            50% {
+                transform: scale(1.1);
+                filter: drop-shadow(0 0 30px var(--gold));
+            }
+
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 10px var(--gold));
+            }
         }
 
         /* Main Card */
@@ -173,15 +180,21 @@
             padding-top: 20px;
         }
 
-        /* Music Placeholder */
-        #music-container {
-            position: fixed;
-            bottom: -100px;
+        .ketupat-bg {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0;
+            z-index: 6;
+            transition: opacity 2s ease;
+            pointer-events: none;
         }
     </style>
 </head>
 
 <body>
+    <audio autoplay>
+        <source src="suasana_di_hari_raya.mp3" type="audio/mpeg">
+    </audio>
 
     <div class="fairy-lights" id="lights">
         <div class="light" style="animation-delay: 0s"></div>
@@ -195,7 +208,8 @@
     <canvas id="fw-canvas"></canvas>
 
     <div id="intro-ui">
-        <button class="btn-open" id="start-btn">KLIK UNTUK KEJUTAN ✨</button>
+        <div class="envelope-wrapper">✉️</div>
+        <p class="click-hint">Buka Kad Raya</p>
     </div>
 
     <div class="card-container" id="main-card">
@@ -210,27 +224,28 @@
                 Maaf zahir batin dipinta."
             </p>
             <div class="footer-names">
-                <p>Daripada:</p>
-                <h3 style="margin-top:5px">Keluarga Encik Jasni & Sekeluarga</h3>
+                <p>Ikhlas Daripada:</p>
+                <h3 style="margin-top:5px">Encik Jasni & Sekeluarga</h3>
             </div>
         </div>
     </div>
 
-    <div id="music-container">
-        <iframe id="yt-player" width="0" height="0" src="" frameborder="0" allow="autoplay"></iframe>
+    <div id="music-container" style="position:fixed; bottom:-100px;">
+        <iframe id="yt-player" width="0" height="0"
+            src="https://www.youtube.com/embed/5UbK6CuXRjI?autoplay=1&enablejsapi=1&mute=1" frameborder="0"
+            allow="autoplay"></iframe>
     </div>
 
     <script>
         const canvas = document.getElementById('fw-canvas');
         const ctx = canvas.getContext('2d');
-        const startBtn = document.getElementById('start-btn');
+        const introUi = document.getElementById('intro-ui');
         const card = document.getElementById('main-card');
         const lights = document.getElementById('lights');
         let fireworks = [];
         let particles = [];
         let runningFireworks = true;
 
-        // Setup Canvas
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
@@ -254,9 +269,7 @@
             }
             draw() {
                 ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI * 2); ctx.fill();
             }
         }
 
@@ -265,8 +278,7 @@
                 this.x = x; this.y = y; this.color = color;
                 this.angle = Math.random() * Math.PI * 2;
                 this.velocity = Math.random() * 5 + 2;
-                this.life = 1;
-                this.decay = 0.02;
+                this.life = 1; this.decay = 0.02;
             }
             update() {
                 this.x += Math.cos(this.angle) * this.velocity;
@@ -276,9 +288,7 @@
             draw() {
                 ctx.globalAlpha = this.life;
                 ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); ctx.fill();
             }
         }
 
@@ -289,42 +299,29 @@
             }
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             if (runningFireworks && Math.random() < 0.08) fireworks.push(new Firework());
-
-            fireworks.forEach((f, i) => {
-                f.update(); f.draw();
-                if (f.done) fireworks.splice(i, 1);
-            });
-
-            particles.forEach((p, i) => {
-                p.update(); p.draw();
-                if (p.life <= 0) particles.splice(i, 1);
-            });
+            fireworks.forEach((f, i) => { f.update(); f.draw(); if (f.done) fireworks.splice(i, 1); });
+            particles.forEach((p, i) => { p.update(); p.draw(); if (p.life <= 0) particles.splice(i, 1); });
             requestAnimationFrame(animate);
         }
 
-        // Start Intro Bunga Api
         animate();
 
-        // Interaction
-        startBtn.addEventListener('click', () => {
-            // 1. Stop Fireworks & Change BG
+        // Interaction Click pada Ikon Kad
+        introUi.addEventListener('click', () => {
             runningFireworks = false;
             document.body.classList.add('bg-raya');
 
-            // 2. Play YouTube Music
-            const ytID = "mfGHKn6uN-8";
-            document.getElementById('yt-player').src = `https://www.youtube.com/embed/${ytID}?autoplay=1`;
+            // Aktifkan suara YouTube (Unmute)
+            const player = document.getElementById('yt-player');
+            player.src = player.src.replace("mute=1", "mute=0");
 
-            // 3. Hide Intro
-            startBtn.style.display = 'none';
+            introUi.style.display = 'none';
 
-            // 4. Show Card & Lights
             setTimeout(() => {
                 card.style.display = 'block';
                 lights.style.opacity = '1';
-                createKetupatIcons(); // Add ketupat background
+                createKetupatIcons();
                 setTimeout(() => {
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
@@ -339,10 +336,9 @@
                 k.innerHTML = '🏮';
                 k.style.left = Math.random() * 90 + '%';
                 k.style.top = Math.random() * 90 + '%';
-                k.style.opacity = '0.2';
                 k.style.animation = `flash ${Math.random() * 2 + 2}s infinite alternate`;
                 document.body.appendChild(k);
-                setTimeout(() => k.style.opacity = '0.2', 100);
+                setTimeout(() => k.style.opacity = '0.3', 100);
             }
         }
     </script>
