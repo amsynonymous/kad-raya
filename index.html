@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ms">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kad Raya Digital | Fireworks Edition</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Quicksand:wght@300;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --olive-dark: #2d3416;
+            --olive-primary: #556b2f;
+            --gold: #d4af37;
+            --gold-light: #f1e5ac;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #000;
+            /* Bermula dengan gelap untuk efek bunga api */
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Background Gradient (Muncul selepas intro) */
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, var(--olive-primary), var(--olive-dark));
+            opacity: 0;
+            transition: opacity 2s ease;
+            z-index: 1;
+        }
+
+        /* Canvas Bunga Api */
+        #fw-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* Intro Screen */
+        #intro-overlay {
+            position: fixed;
+            z-index: 100;
+            text-align: center;
+            transition: all 1s ease;
+        }
+
+        /* Card Container */
+        .card-container {
+            position: relative;
+            z-index: 20;
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .raya-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-light);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .sub-text {
+            color: var(--white);
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--gold);
+            margin: 20px auto;
+            width: 60%;
+        }
+
+        .message {
+            font-style: italic;
+            line-height: 1.6;
+            color: #eee;
+            margin-bottom: 20px;
+        }
+
+        .names {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        /* Button Styling */
+        .btn-open {
+            padding: 15px 40px;
+            background: transparent;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.4s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn-open:hover {
+            background: var(--gold);
+            color: var(--olive-dark);
+            box-shadow: 0 0 20px var(--gold);
+        }
+
+        /* Ketupat Decoration */
+        .ketupat-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            animation: swing 3s ease-in-out infinite;
+        }
+
+        @keyframes swing {
+
+            0%,
+            100% {
+                transform: rotate(-10deg);
+            }
+
+            50% {
+                transform: rotate(10deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="bg-overlay"></div>
+    <canvas id="fw-canvas"></canvas>
+
+    <div id="intro-overlay">
+        <div class="ketupat-icon">🏮</div>
+        <br>
+        <button class="btn-open" id="start-btn">Buka Kad Raya</button>
+    </div>
+
+    <div class="card-container" id="main-card">
+        <div class="raya-card">
+            <div class="ketupat-icon">✨</div>
+            <h1>Selamat Hari Raya</h1>
+            <p class="sub-text">AIDILFITRI 2026</p>
+            <div class="divider"></div>
+            <p class="message">
+                "Gema takbir menghias angkasa, tanda syukur di hari mulia. Mohon dimaafkan segala dosa, moga ukhuwah
+                kekal selamanya."
+            </p>
+            <div class="names">
+                <p>Daripada: [Nama Anda]</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('fw-canvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('start-btn');
+        const intro = document.getElementById('intro-overlay');
+        const card = document.getElementById('main-card');
+        const bg = document.getElementById('bg-overlay');
+
+        let fireworks = [];
+        let particles = [];
+        let animationActive = false;
+
+        // Resize Canvas
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Firework {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.targetY = Math.random() * (canvas.height * 0.5);
+                this.speed = Math.random() * 3 + 5;
+                this.angle = Math.atan2(this.targetY - this.y, 0);
+                this.reached = false;
+                this.color = `hsl(${Math.random() * 40 + 30}, 100%, 50%)`; // Gold/Warm tones
+            }
+            update() {
+                this.y -= this.speed;
+                if (this.y <= this.targetY) {
+                    this.reached = true;
+                    explode(this.x, this.y, this.color);
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.angle = Math.random() * Math.PI * 2;
+                this.velocity = Math.random() * 6 + 2;
+                this.friction = 0.95;
+                this.gravity = 0.15;
+                this.opacity = 1;
+                this.decay = Math.random() * 0.015 + 0.015;
+            }
+            update() {
+                this.velocity *= this.friction;
+                this.x += Math.cos(this.angle) * this.velocity;
+                this.y += Math.sin(this.angle) * this.velocity + this.gravity;
+                this.opacity -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function explode(x, y, color) {
+            for (let i = 0; i < 60; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Efek trail
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (Math.random() < 0.05) fireworks.push(new Firework());
+
+            fireworks.forEach((fw, i) => {
+                fw.update();
+                fw.draw();
+                if (fw.reached) fireworks.splice(i, 1);
+            });
+
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.opacity <= 0) particles.splice(i, 1);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Trigger Event
+        startBtn.addEventListener('click', () => {
+            intro.style.opacity = '0';
+            intro.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                bg.style.opacity = '1';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0) scale(1)';
+                if (!animationActive) {
+                    animate();
+                    animationActive = true;
+                }
+            }, 500);
+        });
+
+    </script>
+</body>
+
+</html>
